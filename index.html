@@ -35,7 +35,8 @@ a{color:inherit}
   radial-gradient(circle at 70% 60%,rgba(0,0,0,.25) 0 1px,transparent 2px) 0 0/11px 11px,
   linear-gradient(160deg,#242424,#171717 60%,#1c1c1c)}
 
-header.top{border-bottom:1px solid var(--line);background:var(--bg)}
+header.top{border-bottom:1px solid var(--line);background:rgba(22,22,22,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);position:sticky;top:env(safe-area-inset-top,0px);z-index:20}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--bg)}
 header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:16px;flex-wrap:wrap}
 .mark{font-family:var(--stencil);font-size:1.9rem;letter-spacing:.06em;text-decoration:none}
 nav{display:flex;gap:24px;flex-wrap:wrap}
@@ -98,7 +99,26 @@ footer .wrap{padding-block:28px;display:flex;justify-content:space-between;gap:1
   section{padding-block:56px}
   nav{display:none}
 }
-@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+/* motion: transform + opacity only, so it stays smooth on phones */
+.btn{transition:transform .2s ease,filter .2s ease,background-color .2s ease}
+.btn:hover{transform:translateY(-2px)}
+.member{transition:transform .25s ease,border-color .25s ease}
+.member:hover{transform:translateY(-4px);border-color:#4a4846}
+.row .cost{transition:color .2s ease}
+.row:hover .cost{color:var(--red)}
+@media (prefers-reduced-motion:no-preference){
+  html{scroll-behavior:smooth}
+  .wordmark{animation:flicker 1.6s ease-out .15s both}
+  .hero-main .label{animation:rise .7s ease-out .05s both}
+  .hero-main .lead{animation:rise .8s ease-out .55s both}
+  .hero-main .actions{animation:rise .8s ease-out .75s both}
+  .facts{animation:rise .9s ease-out .9s both}
+  .js .reveal{opacity:.15;transform:translateY(22px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+  .js .reveal.in{opacity:1;transform:none}
+}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes flicker{0%{opacity:0}8%{opacity:1}12%{opacity:.25}18%{opacity:1}24%{opacity:.5}30%,100%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.btn:hover,.member:hover{transform:none}}
 </style>
 </head>
 <body>
@@ -197,5 +217,25 @@ footer .wrap{padding-block:28px;display:flex;justify-content:space-between;gap:1
 </main>
 
 <footer><div class="wrap"><span>BUNKER · барбершоп у Дніпрі</span><span>Концепт сайту · фото майстрів і залу додаються після погодження</span></div></footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !('IntersectionObserver' in window)) return;
+  document.documentElement.classList.add('js');
+  var els = document.querySelectorAll('.head, .group, .member, .why-item, .contact, .big-cta');
+  var groups = {};
+  els.forEach(function(el){
+    el.classList.add('reveal');
+    var p = el.parentElement; var i = Array.prototype.indexOf.call(p.children, el);
+    if (el.classList.contains('member') || el.classList.contains('why-item')) el.style.transitionDelay = (i * 0.12) + 's';
+  });
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {rootMargin: '0px 0px -8% 0px', threshold: 0.12});
+  els.forEach(function(el){ io.observe(el); });
+  setTimeout(function(){ els.forEach(function(el){ el.classList.add('in'); }); }, 4000);
+})();
+</script>
 </body>
 </html>
